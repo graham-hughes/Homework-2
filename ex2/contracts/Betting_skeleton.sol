@@ -48,10 +48,10 @@ contract BettingContract {
 
 	/* Gamblers place their bets, preferably after calling checkOutcomes */
 	function makeBet(uint _outcome) payable returns (bool) {
-		if (msg.sender == oracle || msg.sender == ownder) {
+		if (msg.sender == oracle || msg.sender == owner) {
 			return false;
 		}
-		if (gamblerA == NULL) {
+		if (gamblerA == address(0)) {
 			gamblerA = msg.sender;
 			Bet memory betA;
 			
@@ -62,7 +62,7 @@ contract BettingContract {
 			bets[gamblerA] = betA;
 			return true;
  		}
-		else if (gamblerB == NULL) {
+		else if (gamblerB == address(0)) {
 			gamblerB = msg.sender;
 			Bet memory betB;
 			
@@ -78,11 +78,12 @@ contract BettingContract {
 
 	/* The oracle chooses which outcome wins */
 	function makeDecision(uint _outcome) OracleOnly() {
+		uint total = bets[gamblerA].amount + bets[gamblerB].amount;
+		
 		if (bets[gamblerA].outcome == _outcome && bets[gamblerA].outcome == _outcome) {
 			winnings[gamblerA] = bets[gamblerA].amount;
 			winnings[gamblerB] = bets[gamblerB].amount;
 		}
-		uint total = bets[gamblerA].amount + bets[gamblerB].amount;
 		else if (bets[gamblerA].outcome == _outcome) {
 			winnings[gamblerA] = total;
 		}
@@ -98,7 +99,7 @@ contract BettingContract {
 	function withdraw(uint withdrawAmount) returns (uint remainingBal) {
 		if (winnings[msg.sender] > withdrawAmount) {
 			winnings[msg.sender] = winnings[msg.sender] - withdrawAmount;
-			msg.sender.transfer(amount);
+			msg.sender.transfer(withdrawAmount);
 			return winnings[msg.sender];
 		}
 		else {
@@ -121,7 +122,6 @@ contract BettingContract {
 		delete(gamblerA);
 		delete(gamblerB);
 		delete(oracle);
-		delete(bets);
 	}
 
 	/* Fallback function */
