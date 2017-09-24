@@ -25,19 +25,41 @@ contract BettingContract {
 	event BetClosed();
 
 	/* Uh Oh, what are these? */
-	modifier OwnerOnly() {}
-	modifier OracleOnly() {}
+	modifier OwnerOnly() {
+		require(msg.sender == owner);
+		_; 
+	}
+	modifier OracleOnly() {
+		require(msg.sender == oracle);
+		_;
+	}
 
 	/* Constructor function, where owner and outcomes are set */
 	function BettingContract(uint[] _outcomes) {
+		owner = msg.sender;
+		outcomes = _outcomes;
 	}
 
 	/* Owner chooses their trusted Oracle */
 	function chooseOracle(address _oracle) OwnerOnly() returns (address) {
+		oracle = _oracle;
+		return oracle;
 	}
 
 	/* Gamblers place their bets, preferably after calling checkOutcomes */
 	function makeBet(uint _outcome) payable returns (bool) {
+		if (msg.sender == oracle || msg.sender == ownder) {
+			return false;
+		}
+		if (gamblerA == NULL) {
+			gamblerA = msg.sender;
+		}
+		else if (gamblerB == NULL) {
+			gamblerB = msg.sender;
+		} else {
+			return false;
+		}
+		
 	}
 
 	/* The oracle chooses which outcome wins */
@@ -46,14 +68,24 @@ contract BettingContract {
 
 	/* Allow anyone to withdraw their winnings safely (if they have enough) */
 	function withdraw(uint withdrawAmount) returns (uint remainingBal) {
+		if (winnings[msg.sender] > withdrawAmount) {
+			winnings[msg.sender] = winnings[msg.sender] - withdrawAmount;
+			msg.sender.transfer(amount);
+			return winnings[msg.sender];
+		}
+		else {
+			return winnings[msg.sender];
+		}
 	}
 	
 	/* Allow anyone to check the outcomes they can bet on */
 	function checkOutcomes() constant returns (uint[]) {
+		return outcomes;
 	}
 	
 	/* Allow anyone to check if they won any bets */
 	function checkWinnings() constant returns(uint) {
+		return winnings[msg.sender];
 	}
 
 	/* Call delete() to reset certain state variables. Which ones? That's upto you to decide */
