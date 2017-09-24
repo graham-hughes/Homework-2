@@ -53,17 +53,45 @@ contract BettingContract {
 		}
 		if (gamblerA == NULL) {
 			gamblerA = msg.sender;
-		}
+			Bet memory betA;
+			
+			betA.outcome = _outcome;
+			betA.amount = msg.value;
+			betA.initialized = true;
+			
+			bets[gamblerA] = betA;
+			return true;
+ 		}
 		else if (gamblerB == NULL) {
 			gamblerB = msg.sender;
-		} else {
-			return false;
+			Bet memory betB;
+			
+			betB.outcome = _outcome;
+			betB.amount = msg.value;
+			betB.initialized = true;
+			
+			bets[gamblerB] = betB;
+			return true;
 		}
-		
+		return false;
 	}
 
 	/* The oracle chooses which outcome wins */
 	function makeDecision(uint _outcome) OracleOnly() {
+		if (bets[gamblerA].outcome == _outcome && bets[gamblerA].outcome == _outcome) {
+			winnings[gamblerA] = bets[gamblerA].amount;
+			winnings[gamblerB] = bets[gamblerB].amount;
+		}
+		uint total = bets[gamblerA].amount + bets[gamblerB].amount;
+		else if (bets[gamblerA].outcome == _outcome) {
+			winnings[gamblerA] = total;
+		}
+		else if (bets[gamblerB].outcome == _outcome) {
+			winnings[gamblerB] = total;
+		} 
+		else {
+			winnings[oracle] = total;
+		}
 	}
 
 	/* Allow anyone to withdraw their winnings safely (if they have enough) */
@@ -90,6 +118,10 @@ contract BettingContract {
 
 	/* Call delete() to reset certain state variables. Which ones? That's upto you to decide */
 	function contractReset() private {
+		delete(gamblerA);
+		delete(gamblerB);
+		delete(oracle);
+		delete(bets);
 	}
 
 	/* Fallback function */
